@@ -1,0 +1,84 @@
+.Dd 23. 4. 2017    
+.Dt Trace   
+.Os xbarbo06
+.Sh NAME                
+.Nm trace
+.Nd Traces the path to its destination address
+.Sh SYNOPSIS           
+.Nm
+.Op Fl f Ar first_ttl     
+.Op Fl m Ar max_ttl
+host        
+      
+.Sh DESCRIPTION      
+.Ar Trace 
+traces path from the client network to the host network on port 33434. It works by setting TTL from 1 (or -f if given) and incrementing
+for each send till it reaches destination or gets error or hits maximum of ttl (defaut is 30 or -m if given). Maximum time of waiting for response
+from a gateway is 2 second after which trace prints a star (*) for each sent probe (only one probe is sent so only one star will be printed).
+.Ar Trace
+prints elapsed time from sent till receive of socket message if ICMP TIME_EXCEEDED is returned, otherwise one of the following errors:
+.Bl -tag
+.It N!             
+Network unreachable
+.It X! 
+Communication  administratively  prohibited
+.It H!
+Host unreachable
+.It P!
+Protocol unreachable
+.El                    
+.Ar Trace
+works with UDP packets. After receiveing ICMP PORT_UNREACHABLE error we know that we got into our destination and 
+.Ar trace
+ends. If one of the previous errors (N!, X!, H!, P!) is received, program end as well. The only required parameter
+is ip or name of the destination. 
+.Ar Trace
+accepts both IPv4 and IPv6.
+
+.Sh OPTIONS
+.Bl -tag 
+.It Fl f                
+Specifies with what value ttl should start. Cannot be higher than max ttl.
+.It Fl m
+Specifies tha max value ttl can reach. Cannot be lower than ttl.
+.El       
+
+.Sh EXIT STATUS
+.Bl -tag 
+.It 0
+Everything went OK.
+.It -1              
+Given ip / name couldn't be translated.
+.It -2
+There was a error creating a socket.
+.It -3
+There was a error setting the socket for receiving errors.
+.It -10
+There was a error setting the ttl for the socket.
+.It -11
+Couldn't send the socket.
+.It -12
+Couldn't set select for waiting.
+.It -13
+Couldn't receive the socket.
+.It -14
+Error closing the socket.
+.It -20
+TTL must be lower or equal to MAX TTL.
+.It -21
+TTL and MAX TTL must be highet than 1 and lower than 256.
+.It -30
+Wrong -m argument.
+.It -31
+Wrong format of -m argument.
+.It -32
+Wrong -f argument.
+.It -33
+Wrong format of -f argument. 
+.It -34
+Wrong number of arguments.
+.El
+
+.Sh BUGS
+.Ar Trace
+can only detect four errors and if timeout runs out, doesn't try to send another probe and immediately goes to the next ttl. 
